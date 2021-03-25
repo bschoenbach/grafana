@@ -234,6 +234,15 @@ $btn-service-icon-width: 35px;
   }
 }
 
+.btn-service--id4me {
+  .btn-service-icon {
+    background-image: url(../img/id4me_logo_white.png);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    background-size: 60%;
+  }
+}
+
 //Toggle button
 
 .toggle-btn {

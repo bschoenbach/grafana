@@ -228,6 +228,11 @@ $external-services: (
     borderColor: #393939,
     icon: '',
   ),
+  id4me: (
+    bgColor: #007a9d,
+    borderColor: #393939,
+    icon: '',
+  ),
   oauth: (
     bgColor: #262628,
     borderColor: #393939,

@@ -40,6 +40,10 @@ const loginServices: () => LoginServices = () => {
       enabled: oauthEnabled && config.oauth.okta,
       name: 'Okta',
     },
+    id4me: {
+      enabled: oauthEnabled && config.oauth.id4me,
+      name: 'ID4me',
+    },
     oauth: {
       enabled: oauthEnabled && config.oauth.generic_oauth,
       name: oauthEnabled && config.oauth.generic_oauth ? config.oauth.generic_oauth.name : 'OAuth',
