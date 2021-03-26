@@ -92,6 +92,7 @@ func NewOAuthService() {
 			AuthUrl:            sec.Key("auth_url").String(),
 			TokenUrl:           sec.Key("token_url").String(),
 			ApiUrl:             sec.Key("api_url").String(),
+			IssuerUrl:          sec.Key("issuer_url").String(),
 			Enabled:            sec.Key("enabled").MustBool(),
 			EmailAttributeName: sec.Key("email_attribute_name").String(),
 			EmailAttributePath: sec.Key("email_attribute_path").String(),
@@ -167,6 +168,16 @@ func NewOAuthService() {
 		// Okta
 		if name == "okta" {
 			SocialMap["okta"] = &SocialOkta{
+				SocialBase:        newSocialBase(name, &config, info),
+				apiUrl:            info.ApiUrl,
+				allowedGroups:     util.SplitString(sec.Key("allowed_groups").String()),
+				roleAttributePath: info.RoleAttributePath,
+			}
+		}
+
+		// ID4me
+		if name == "id4me" {
+			SocialMap["id4me"] = &SocialOkta{
 				SocialBase:        newSocialBase(name, &config, info),
 				apiUrl:            info.ApiUrl,
 				allowedGroups:     util.SplitString(sec.Key("allowed_groups").String()),
