@@ -5,15 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/util/errutil"
 	"golang.org/x/oauth2"
 	"gopkg.in/square/go-jose.v2/jwt"
+
+	"github.com/miekg/dns"
+	"golang.org/x/net/idna"
 )
 
 type SocialID4me struct {
 	*SocialBase
+	issuerUrl         string
 	apiUrl            string
 	allowedGroups     []string
 	roleAttributePath string
@@ -48,6 +53,11 @@ func (claims *ID4meClaims) extractEmail() string {
 
 func (s *SocialID4me) Type() int {
 	return int(models.ID4ME)
+}
+
+func (s *SocialID4me) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
+
+	return "https://mydomain.de/"
 }
 
 func (s *SocialID4me) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
@@ -150,4 +160,49 @@ func (s *SocialID4me) IsGroupMember(groups []string) bool {
 	}
 
 	return false
+}
+
+func LookupIssuer(id string, resolver string) (string, error) {
+	idtxt := "_openid." + id
+	asciiName, err := idna.ToASCII(idtxt)
+	if err != nil {
+		return "", fmt.Errorf("Could not map %v to ASCII name", asciiName)
+	}
+
+	m1 := new(dns.Msg)
+	m1.Id = dns.Id()
+	m1.RecursionDesired = true
+	m1.Question = make([]dns.Question, 1)
+	m1.Question[0] = dns.Question{Name: dns.Fqdn(asciiName), Qtype: dns.TypeTXT, Qclass: dns.ClassINET}
+	in, err := dns.Exchange(m1, resolver)
+	if err != nil {
+		return "", err
+	}
+
+	if in != nil && in.Rcode != dns.RcodeSuccess {
+		if in.Rcode == dns.RcodeNameError {
+			return "", fmt.Errorf("Record not found: %s (_openid.%s)", id, asciiName)
+		}
+		return "", fmt.Errorf("Error during DNS lookup: %s", dns.RcodeToString[in.Rcode])
+	}
+
+	txtrecord := ""
+
+	for _, record := range in.Answer {
+		if t, ok := record.(*dns.TXT); ok {
+			for _, line := range t.Txt {
+				txtrecord = line
+				break
+			}
+		}
+	}
+
+	if !strings.Contains(txtrecord, "iss=") {
+		return "", fmt.Errorf("Invalid TXT record for id %s: %s", id, txtrecord)
+	}
+
+	parts := strings.Split(txtrecord, ";")
+	isspart := strings.Split(parts[1], "=")
+	issuer := isspart[1]
+	return issuer, nil
 }

@@ -177,8 +177,9 @@ func NewOAuthService() {
 
 		// ID4me
 		if name == "id4me" {
-			SocialMap["id4me"] = &SocialOkta{
+			SocialMap["id4me"] = &SocialID4me{
 				SocialBase:        newSocialBase(name, &config, info),
+				issuerUrl:         info.IssuerUrl,
 				apiUrl:            info.ApiUrl,
 				allowedGroups:     util.SplitString(sec.Key("allowed_groups").String()),
 				roleAttributePath: info.RoleAttributePath,
