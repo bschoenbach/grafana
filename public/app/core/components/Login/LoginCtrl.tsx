@@ -12,6 +12,7 @@ export interface FormModel {
   user: string;
   password: string;
   email: string;
+  serviceLogin: string;
 }
 
 interface Props {
@@ -20,7 +21,9 @@ interface Props {
   children: (props: {
     isLoggingIn: boolean;
     changePassword: (pw: string) => void;
+    changeLoginServiceView: (loginServiceForm: string) => void;
     isChangingPassword: boolean;
+    isServiceLoginForm: string;
     skipPasswordChange: Function;
     login: (data: FormModel) => void;
     disableLoginForm: boolean;
@@ -36,6 +39,7 @@ interface Props {
 interface State {
   isLoggingIn: boolean;
   isChangingPassword: boolean;
+  isServiceLoginForm: string;
 }
 
 export class LoginCtrl extends PureComponent<Props, State> {
@@ -46,6 +50,7 @@ export class LoginCtrl extends PureComponent<Props, State> {
     this.state = {
       isLoggingIn: false,
       isChangingPassword: false,
+      isServiceLoginForm: 'none',
     };
 
     if (config.loginError) {
@@ -105,9 +110,38 @@ export class LoginCtrl extends PureComponent<Props, State> {
       });
   };
 
+  loginService = (formModel: FormModel) => {
+    this.setState({
+      isLoggingIn: true,
+    });
+
+    getBackendSrv()
+      .post('/login', formModel)
+      .then((result: any) => {
+        this.result = result;
+        if (formModel.password !== 'admin' || config.ldapEnabled || config.authProxyEnabled) {
+          this.toGrafana();
+          return;
+        } else {
+          this.changeView();
+        }
+      })
+      .catch(() => {
+        this.setState({
+          isLoggingIn: false,
+        });
+      });
+  };
+
   changeView = () => {
     this.setState({
       isChangingPassword: true,
+    });
+  };
+
+  changeLoginServiceView = (loginServiceForm: string) => {
+    this.setState({
+      isServiceLoginForm: loginServiceForm,
     });
   };
 
@@ -126,8 +160,8 @@ export class LoginCtrl extends PureComponent<Props, State> {
 
   render() {
     const { children } = this.props;
-    const { isLoggingIn, isChangingPassword } = this.state;
-    const { login, toGrafana, changePassword } = this;
+    const { isLoggingIn, isChangingPassword, isServiceLoginForm } = this.state;
+    const { login, toGrafana, changePassword, changeLoginServiceView } = this;
     const { loginHint, passwordHint, disableLoginForm, ldapEnabled, authProxyEnabled, disableUserSignUp } = config;
 
     return (
@@ -143,8 +177,10 @@ export class LoginCtrl extends PureComponent<Props, State> {
           login,
           isLoggingIn,
           changePassword,
+          changeLoginServiceView,
           skipPasswordChange: toGrafana,
           isChangingPassword,
+          isServiceLoginForm,
         })}
       </>
     );

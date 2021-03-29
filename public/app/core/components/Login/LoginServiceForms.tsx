@@ -23,13 +23,13 @@ export const submitButton = css`
   width: 100%;
 `;
 
-export const LoginForm: FC<Props> = ({ children, onSubmit, isLoggingIn, passwordHint, loginHint }) => {
+export const LoginFormID4me: FC<Props> = ({ children, onSubmit, isLoggingIn, passwordHint, loginHint }) => {
   return (
     <div className={wrapperStyles}>
       <Form onSubmit={onSubmit} validateOn="onChange">
         {({ register, errors }) => (
           <>
-            <Field label="Email or username" invalid={!!errors.user} error={errors.user?.message}>
+            <Field label="Your ID Login" invalid={!!errors.user} error={errors.user?.message}>
               <Input
                 autoFocus
                 name="user"
@@ -39,17 +39,8 @@ export const LoginForm: FC<Props> = ({ children, onSubmit, isLoggingIn, password
                 aria-label={selectors.pages.Login.username}
               />
             </Field>
-            <Field label="Password" invalid={!!errors.password} error={errors.password?.message}>
-              <Input
-                name="password"
-                type="password"
-                placeholder={passwordHint}
-                ref={register({ required: 'Password is required' })}
-                aria-label={selectors.pages.Login.password}
-              />
-            </Field>
             <Button aria-label={selectors.pages.Login.submit} className={submitButton} disabled={isLoggingIn}>
-              {isLoggingIn ? 'Logging in...' : 'Log in'}
+              {isLoggingIn ? 'Logging in...' : 'Sign in with ID4me'}
             </Button>
             {children}
           </>

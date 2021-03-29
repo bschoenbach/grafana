@@ -12,6 +12,7 @@ import { Branding } from 'app/core/components/Branding/Branding';
 import { HorizontalGroup, LinkButton } from '@grafana/ui';
 import { LoginLayout, InnerBox } from './LoginLayout';
 import config from 'app/core/config';
+import { LoginFormID4me } from './LoginServiceForms';
 
 const forgottenPasswordStyles = css`
   padding: 0;
@@ -33,11 +34,29 @@ export const LoginPage: FC = () => {
           login,
           isLoggingIn,
           changePassword,
+          changeLoginServiceView,
           skipPasswordChange,
           isChangingPassword,
+          isServiceLoginForm,
         }) => (
           <>
-            {!isChangingPassword && (
+            {isServiceLoginForm !== 'none' && (
+              <InnerBox>
+                {isServiceLoginForm === 'id4me' && (
+                  <>
+                    <LoginFormID4me
+                      onSubmit={login}
+                      loginHint={loginHint}
+                      passwordHint={passwordHint}
+                      isLoggingIn={isLoggingIn}
+                    >
+                      <></>
+                    </LoginFormID4me>
+                  </>
+                )}
+              </InnerBox>
+            )}
+            {!isChangingPassword && isServiceLoginForm === 'none' && (
               <InnerBox>
                 {!disableLoginForm && (
                   <>
@@ -63,11 +82,11 @@ export const LoginPage: FC = () => {
                     </LoginForm>
                   </>
                 )}
-                <LoginServiceButtons />
+                <LoginServiceButtons changeLoginServiceView={changeLoginServiceView} />
                 {!disableUserSignUp && <UserSignup />}
               </InnerBox>
             )}
-            {isChangingPassword && (
+            {isChangingPassword && isServiceLoginForm === 'none' && (
               <InnerBox>
                 <ChangePassword onSubmit={changePassword} onSkip={() => skipPasswordChange()} />
               </InnerBox>
