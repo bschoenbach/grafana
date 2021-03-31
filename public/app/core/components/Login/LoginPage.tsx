@@ -32,6 +32,7 @@ export const LoginPage: FC = () => {
           disableLoginForm,
           disableUserSignUp,
           login,
+          loginWithService,
           isLoggingIn,
           changePassword,
           changeLoginServiceView,
@@ -45,7 +46,7 @@ export const LoginPage: FC = () => {
                 {isServiceLoginForm === 'id4me' && (
                   <>
                     <LoginFormID4me
-                      onSubmit={login}
+                      onSubmit={loginWithService}
                       loginHint={loginHint}
                       passwordHint={passwordHint}
                       isLoggingIn={isLoggingIn}

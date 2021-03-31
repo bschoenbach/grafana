@@ -12,7 +12,7 @@ export interface FormModel {
   user: string;
   password: string;
   email: string;
-  serviceLogin: string;
+  login_hint: string;
 }
 
 interface Props {
@@ -26,6 +26,7 @@ interface Props {
     isServiceLoginForm: string;
     skipPasswordChange: Function;
     login: (data: FormModel) => void;
+    loginWithService: (data: FormModel) => void;
     disableLoginForm: boolean;
     ldapEnabled: boolean;
     authProxyEnabled: boolean;
@@ -110,27 +111,27 @@ export class LoginCtrl extends PureComponent<Props, State> {
       });
   };
 
-  loginService = (formModel: FormModel) => {
+  loginWithService = (formModel: FormModel) => {
     this.setState({
       isLoggingIn: true,
     });
 
     getBackendSrv()
-      .post('/login', formModel)
+      .get('/login/' + this.state.isServiceLoginForm, formModel)
       .then((result: any) => {
         this.result = result;
-        if (formModel.password !== 'admin' || config.ldapEnabled || config.authProxyEnabled) {
-          this.toGrafana();
-          return;
-        } else {
-          this.changeView();
-        }
       })
       .catch(() => {
         this.setState({
           isLoggingIn: false,
         });
       });
+    /**window.location.href = config.appSubUrl + '/login/' + this.state.isServiceLoginForm + '/?login_hint=hardcoced';
+    this.setState({
+      isLoggingIn: false,
+      isChangingPassword: false,
+      isServiceLoginForm: 'none',
+    });*/
   };
 
   changeView = () => {
@@ -161,7 +162,7 @@ export class LoginCtrl extends PureComponent<Props, State> {
   render() {
     const { children } = this.props;
     const { isLoggingIn, isChangingPassword, isServiceLoginForm } = this.state;
-    const { login, toGrafana, changePassword, changeLoginServiceView } = this;
+    const { login, loginWithService, toGrafana, changePassword, changeLoginServiceView } = this;
     const { loginHint, passwordHint, disableLoginForm, ldapEnabled, authProxyEnabled, disableUserSignUp } = config;
 
     return (
@@ -175,6 +176,7 @@ export class LoginCtrl extends PureComponent<Props, State> {
           authProxyEnabled,
           disableUserSignUp,
           login,
+          loginWithService,
           isLoggingIn,
           changePassword,
           changeLoginServiceView,

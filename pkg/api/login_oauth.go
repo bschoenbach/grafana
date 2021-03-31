@@ -41,6 +41,7 @@ func (hs *HTTPServer) OAuthLogin(ctx *models.ReqContext) {
 	loginInfo := models.LoginInfo{
 		AuthModule: "oauth",
 	}
+
 	if setting.OAuthService == nil {
 		hs.handleOAuthLoginError(ctx, loginInfo, LoginError{
 			HttpStatus:    http.StatusNotFound,
@@ -84,6 +85,9 @@ func (hs *HTTPServer) OAuthLogin(ctx *models.ReqContext) {
 		cookies.WriteCookie(ctx.Resp, OauthStateCookieName, hashedState, hs.Cfg.OAuthCookieMaxAge, hs.CookieOptionsFromCfg)
 		if setting.OAuthService.OAuthInfos[name].HostedDomain == "" {
 			ctx.Redirect(connect.AuthCodeURL(state, oauth2.AccessTypeOnline))
+			oauthLogger.Debug("AUTH-CODE-URL" + connect.AuthCodeURL(state, oauth2.AccessTypeOnline))
+			user := ctx.Query("login_hint")
+			oauthLogger.Debug("BIN drin mit " + user)
 		} else {
 			ctx.Redirect(connect.AuthCodeURL(state, oauth2.SetAuthURLParam("hd", setting.OAuthService.OAuthInfos[name].HostedDomain), oauth2.AccessTypeOnline))
 		}

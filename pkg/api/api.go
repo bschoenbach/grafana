@@ -40,6 +40,7 @@ func (hs *HTTPServer) registerRoutes() {
 	r.Get("/login/:name", quota("session"), hs.OAuthLogin)
 	r.Get("/login", hs.LoginView)
 	r.Get("/invite/:code", hs.Index)
+	r.Get("/login/service/id4me/lookup/:id", hs.LoginServiceID4meGet)
 
 	// authed views
 	r.Get("/", reqSignedIn, hs.Index)

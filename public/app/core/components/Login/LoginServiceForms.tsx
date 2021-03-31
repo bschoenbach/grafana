@@ -29,10 +29,10 @@ export const LoginFormID4me: FC<Props> = ({ children, onSubmit, isLoggingIn, pas
       <Form onSubmit={onSubmit} validateOn="onChange">
         {({ register, errors }) => (
           <>
-            <Field label="Your ID Login" invalid={!!errors.user} error={errors.user?.message}>
+            <Field label="Your ID Login" invalid={!!errors.login_hint} error={errors.login_hint?.message}>
               <Input
                 autoFocus
-                name="user"
+                name="login_hint"
                 autoCapitalize="none"
                 ref={register({ required: 'ID is required' })}
                 placeholder={loginHint}

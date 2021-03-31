@@ -34,7 +34,7 @@ export const LoginForm: FC<Props> = ({ children, onSubmit, isLoggingIn, password
                 autoFocus
                 name="user"
                 autoCapitalize="none"
-                ref={register({ required: 'ID is required' })}
+                ref={register({ required: 'Email or username is required' })}
                 placeholder={loginHint}
                 aria-label={selectors.pages.Login.username}
               />

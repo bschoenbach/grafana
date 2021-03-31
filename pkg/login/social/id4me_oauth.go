@@ -56,7 +56,7 @@ func (s *SocialID4me) Type() int {
 }
 
 func (s *SocialID4me) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
-
+	LookupIssuer(s.issuerUrl, "1.1.1.1:53")
 	return "https://mydomain.de/"
 }
 
