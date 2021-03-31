@@ -47,7 +47,7 @@ export const LoginPage: FC = () => {
                   <>
                     <LoginFormID4me
                       onSubmit={loginWithService}
-                      loginHint={loginHint}
+                      loginHint="your.domain.tld"
                       passwordHint={passwordHint}
                       isLoggingIn={isLoggingIn}
                     >
