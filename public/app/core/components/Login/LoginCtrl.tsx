@@ -117,9 +117,16 @@ export class LoginCtrl extends PureComponent<Props, State> {
     });
 
     getBackendSrv()
-      .get('/login/' + this.state.isServiceLoginForm, formModel)
+      .get('/login/service/' + this.state.isServiceLoginForm + '/lookup/' + formModel.login_hint, formModel)
       .then((result: any) => {
         this.result = result;
+        window.location.href =
+          config.appSubUrl + '/login/' + this.state.isServiceLoginForm + '/?login_hint=' + formModel.login_hint;
+        this.setState({
+          isLoggingIn: false,
+          isChangingPassword: false,
+          isServiceLoginForm: 'none',
+        });
       })
       .catch(() => {
         this.setState({

@@ -1,16 +1,19 @@
 package social
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/util/errutil"
 	"github.com/jmespath/go-jmespath"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -28,6 +31,21 @@ func (s *SocialBase) IsEmailAllowed(email string) bool {
 
 func (s *SocialBase) IsSignupAllowed() bool {
 	return s.allowSignup
+}
+
+func (s *SocialBase) CustomAuthCodeURL(state string, loginHint string, opts ...oauth2.AuthCodeOption) (string, error) {
+
+	authCodeUrl := s.AuthCodeURL(state, opts...)
+
+	var buf bytes.Buffer
+	buf.WriteString(authCodeUrl)
+	v := url.Values{
+		"login_hint": {loginHint},
+	}
+	buf.WriteByte('&')
+	buf.WriteString(v.Encode())
+
+	return buf.String(), nil
 }
 
 func isEmailAllowed(email string, allowedDomains []string) bool {

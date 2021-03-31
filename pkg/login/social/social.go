@@ -36,6 +36,7 @@ type SocialConnector interface {
 	UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error)
 	IsEmailAllowed(email string) bool
 	IsSignupAllowed() bool
+	CustomAuthCodeURL(state string, loginHint string, opts ...oauth2.AuthCodeOption) (string, error)
 
 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
 	Exchange(ctx context.Context, code string, authOptions ...oauth2.AuthCodeOption) (*oauth2.Token, error)

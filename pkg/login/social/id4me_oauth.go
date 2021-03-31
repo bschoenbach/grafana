@@ -1,10 +1,12 @@
 package social
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/grafana/grafana/pkg/models"
@@ -55,9 +57,31 @@ func (s *SocialID4me) Type() int {
 	return int(models.ID4ME)
 }
 
-func (s *SocialID4me) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
-	LookupIssuer(s.issuerUrl, "1.1.1.1:53")
-	return "https://mydomain.de/"
+func (s *SocialID4me) CustomAuthCodeURL(state string, loginHint string, opts ...oauth2.AuthCodeOption) (string, error) {
+
+	issuer, err := LookupIssuer(loginHint, "1.1.1.1:53")
+	if err != nil {
+		return "", err
+	}
+
+	if !compareIssuer(issuer, s.issuerUrl) {
+		return "", errors.New(fmt.Sprintf("No ID4me registration configured for %s", issuer))
+	}
+
+	authCodeUrl := s.AuthCodeURL(state, opts...)
+
+	var buf bytes.Buffer
+	buf.WriteString(authCodeUrl)
+	v := url.Values{
+		"login_hint": {loginHint},
+	}
+
+	buf.WriteByte('&')
+	buf.WriteString(v.Encode())
+
+	return buf.String(), nil
+
+	//return "Login HINT" + loginHint + " ISSUER " + issuer, nil
 }
 
 func (s *SocialID4me) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
@@ -205,4 +229,19 @@ func LookupIssuer(id string, resolver string) (string, error) {
 	isspart := strings.Split(parts[1], "=")
 	issuer := isspart[1]
 	return issuer, nil
+}
+
+func compareIssuer(issuer string, compareTo string) bool {
+	if slice := strings.Split(issuer, "://"); len(slice) > 1 {
+		issuer = slice[1]
+	}
+	if slice := strings.Split(compareTo, "://"); len(slice) > 1 {
+		compareTo = slice[1]
+	}
+
+	if issuer == compareTo {
+		return true
+	} else {
+		return false
+	}
 }

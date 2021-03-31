@@ -83,13 +83,16 @@ func (hs *HTTPServer) OAuthLogin(ctx *models.ReqContext) {
 
 		hashedState := hashStatecode(state, setting.OAuthService.OAuthInfos[name].ClientSecret)
 		cookies.WriteCookie(ctx.Resp, OauthStateCookieName, hashedState, hs.Cfg.OAuthCookieMaxAge, hs.CookieOptionsFromCfg)
+
+		login_hint := ctx.Query("login_hint")
+
 		if setting.OAuthService.OAuthInfos[name].HostedDomain == "" {
-			ctx.Redirect(connect.AuthCodeURL(state, oauth2.AccessTypeOnline))
-			oauthLogger.Debug("AUTH-CODE-URL" + connect.AuthCodeURL(state, oauth2.AccessTypeOnline))
-			user := ctx.Query("login_hint")
-			oauthLogger.Debug("BIN drin mit " + user)
+			authCodeUrl, _ := connect.CustomAuthCodeURL(state, login_hint, oauth2.AccessTypeOnline)
+			ctx.Redirect(authCodeUrl)
+
 		} else {
-			ctx.Redirect(connect.AuthCodeURL(state, oauth2.SetAuthURLParam("hd", setting.OAuthService.OAuthInfos[name].HostedDomain), oauth2.AccessTypeOnline))
+			authCodeUrl, _ := connect.CustomAuthCodeURL(state, login_hint, oauth2.SetAuthURLParam("hd", setting.OAuthService.OAuthInfos[name].HostedDomain), oauth2.AccessTypeOnline)
+			ctx.Redirect(authCodeUrl)
 		}
 		return
 	}
