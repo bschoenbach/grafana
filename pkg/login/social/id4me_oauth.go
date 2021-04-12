@@ -37,15 +37,27 @@ type SocialID4me struct {
 }
 
 type ID4meUserInfoJson struct {
-	Name        string              `json:"name"`
-	DisplayName string              `json:"display_name"`
-	Login       string              `json:"login"`
-	Username    string              `json:"username"`
-	Email       string              `json:"email"`
-	Upn         string              `json:"upn"`
-	Attributes  map[string][]string `json:"attributes"`
+	Name        string                     `json:"name"`
+	DisplayName string                     `json:"display_name"`
+	Login       string                     `json:"login"`
+	Username    string                     `json:"username"`
+	Email       string                     `json:"email"`
+	Upn         string                     `json:"upn"`
+	Attributes  map[string][]string        `json:"attributes"`
+	ClaimSource map[string]ClaimSourceMeta `json:"_claim_sources,omitempty"`
 	rawJSON     []byte
 	source      string
+}
+
+// ClaimSources struct
+//type ClaimSources struct {
+//	ClaimSource map[string]ClaimSourceMeta `json:"_claim_sources"`
+//}
+
+// ClaimSourceMeta struct
+type ClaimSourceMeta struct {
+	Endpoint    string `json:"endpoint,omitempty"`
+	AccessToken string `json:"access_token,omitempty"`
 }
 
 /*
@@ -120,10 +132,11 @@ func (info *ID4meUserInfoJson) String() string {
 func (s *SocialID4me) UserInfo(client *http.Client, token *oauth2.Token) (*BasicUserInfo, error) {
 	s.log.Debug("Getting user info")
 	tokenData := s.extractFromToken(token)
-	apiData := s.extractFromAPI(client)
+	apiData := s.extractFromAPI(client, s.apiUrl)
+	distApiData := s.retrieveDistributedClaims(client, apiData)
 
 	userInfo := &BasicUserInfo{}
-	for _, data := range []*ID4meUserInfoJson{tokenData, apiData} {
+	for _, data := range append([]*ID4meUserInfoJson{tokenData, apiData}, distApiData...) {
 		if data == nil {
 			continue
 		}
@@ -276,17 +289,18 @@ func (s *SocialID4me) extractFromToken(token *oauth2.Token) *ID4meUserInfoJson {
 	return &data
 }
 
-func (s *SocialID4me) extractFromAPI(client *http.Client) *ID4meUserInfoJson {
-	s.log.Debug("Getting user info from API")
-	rawUserInfoResponse, err := s.httpGet(client, s.apiUrl)
+func (s *SocialID4me) extractFromAPI(client *http.Client, apiUrl string) *ID4meUserInfoJson {
+	s.log.Debug("Getting user info from API", "url", apiUrl)
+	rawUserInfoResponse, err := s.httpGet(client, apiUrl)
 	if err != nil {
-		s.log.Debug("Error getting user info from API", "url", s.apiUrl, "error", err)
+		s.log.Debug("Error getting user info from API", "url", apiUrl, "error", err)
 		return nil
 	}
 
 	rawJSON := rawUserInfoResponse.Body
 
 	var data ID4meUserInfoJson
+	data.ClaimSource = make(map[string]ClaimSourceMeta)
 	if err := json.Unmarshal(rawJSON, &data); err != nil {
 		s.log.Error("Error decoding user info response", "raw_json", rawJSON, "error", err)
 		return nil
@@ -538,6 +552,37 @@ func LookupIssuer(id string, resolver string) (string, error) {
 	isspart := strings.Split(parts[1], "=")
 	issuer := isspart[1]
 	return issuer, nil
+}
+
+func (s *SocialID4me) retrieveDistributedClaims(client *http.Client, userinfo *ID4meUserInfoJson) []*ID4meUserInfoJson {
+
+	index := 0
+	if len(userinfo.ClaimSource) > 0 {
+		var ret = make([]*ID4meUserInfoJson, len(userinfo.ClaimSource))
+		for k := range userinfo.ClaimSource {
+			resp, err := s.httpGet(client, userinfo.ClaimSource[k].Endpoint)
+			if err != nil {
+				s.log.Debug("Error getting user info from API", "url", userinfo.ClaimSource[k].Endpoint, "error", err)
+				return nil
+			}
+
+			rawJSON := resp.Body
+			data := new(ID4meUserInfoJson)
+			//data.ClaimSource = make(map[string]ClaimSourceMeta)
+			if err := json.Unmarshal(rawJSON, &data); err != nil {
+				s.log.Error("Error decoding user info response", "raw_json", rawJSON, "error", err)
+				return nil
+			}
+
+			data.rawJSON = rawJSON
+			data.source = "API"
+			s.log.Debug("Received user info response from API", "raw_json", string(rawJSON), "data", data.String())
+			ret[index] = data
+			index++
+		}
+		return ret
+	}
+	return nil
 }
 
 func compareIssuer(issuer string, compareTo string) bool {
