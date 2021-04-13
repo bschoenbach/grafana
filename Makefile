@@ -113,7 +113,7 @@ build-docker-dev: ## Build Docker image for development (fast).
 
 build-docker-full: ## Build Docker image for development.
 	@echo "build docker container"
-	docker build --tag grafana/grafana:dev .
+	docker build --tag grafana/grafana:dev --tag quay.io/deniceg/denicid-grafana:dev .
 
 ##@ Services
 

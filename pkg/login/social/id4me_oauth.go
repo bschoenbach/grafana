@@ -555,7 +555,6 @@ func LookupIssuer(id string, resolver string) (string, error) {
 }
 
 func (s *SocialID4me) retrieveDistributedClaims(client *http.Client, userinfo *ID4meUserInfoJson) []*ID4meUserInfoJson {
-
 	index := 0
 	if len(userinfo.ClaimSource) > 0 {
 		var ret = make([]*ID4meUserInfoJson, len(userinfo.ClaimSource))
