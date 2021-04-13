@@ -562,7 +562,7 @@ func (s *SocialID4me) retrieveDistributedClaims(client *http.Client, userinfo *I
 		for k := range userinfo.ClaimSource {
 			resp, err := s.httpGet(client, userinfo.ClaimSource[k].Endpoint)
 			if err != nil {
-				s.log.Debug("Error getting user info from API", "url", userinfo.ClaimSource[k].Endpoint, "error", err)
+				s.log.Debug("Error getting user info from distributed API", "url", userinfo.ClaimSource[k].Endpoint, "error", err)
 				return nil
 			}
 
@@ -576,7 +576,7 @@ func (s *SocialID4me) retrieveDistributedClaims(client *http.Client, userinfo *I
 
 			data.rawJSON = rawJSON
 			data.source = "API"
-			s.log.Debug("Received user info response from API", "raw_json", string(rawJSON), "data", data.String())
+			s.log.Debug("Received user info response from distributed API", "raw_json", string(rawJSON), "data", data.String())
 			ret[index] = data
 			index++
 		}
